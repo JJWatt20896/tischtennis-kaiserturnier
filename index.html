@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tischtennis-Kaiserturnier</title>
+<style>
+:root{
+  --bg:#fbfaf3; --card:#ffffff; --ink:#1d2330; --muted:#566070; --line:#dedbcf;
+  --lime:#e1f8a8; --lime-2:#a8dc3c; --lime-ink:#355405;
+  --lav:#ebe2fd; --lav-2:#b49cf3; --lav-ink:#47309a;
+  --tq:#c8f2ed; --tq-2:#4fcfc0; --tq-ink:#0a5a53;
+  --or:#ffe2bf; --or-2:#ffa448; --or-ink:#874100;
+  --win:#2b8a3e; --err:#b42318; --radius:18px;
+}
+*{box-sizing:border-box}
+html{font-size:20px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;line-height:1.45}
+h1,h2,h3{line-height:1.2;margin:0 0 .5rem}
+h1{font-size:clamp(1.5rem,4vw,2.2rem)}
+h2{font-size:1.45rem}
+p{margin:.4rem 0 .8rem}
+small,.small{font-size:.85rem;color:var(--muted)}
+[hidden]{display:none !important}
+.wrap{max-width:1500px;margin:0 auto;padding:0 16px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1rem;padding:1rem 0 .6rem}
+header.top .title{flex:1 1 auto;min-width:0}
+header.top .phase{font-size:1rem;color:var(--muted);margin:0}
+.block{border-radius:var(--radius);padding:1.1rem 1.2rem;margin:0 0 1rem;border:2px solid transparent}
+.lime{background:var(--lime);border-color:var(--lime-2)}
+.lav{background:var(--lav);border-color:var(--lav-2)}
+.tq{background:var(--tq);border-color:var(--tq-2)}
+.or{background:var(--or);border-color:var(--or-2)}
+.plain{background:var(--card);border-color:var(--line)}
+.row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.btn,button{font:inherit;font-size:1rem;font-weight:600;min-height:52px;padding:.55rem 1.1rem;border-radius:14px;border:2px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
+button:hover:not(:disabled){filter:brightness(1.15)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,.file:focus-within{outline:4px solid #6d4fe0;outline-offset:2px}
+button:disabled{opacity:.4;cursor:not-allowed}
+.ghost{background:#fff;color:var(--ink)}
+.big{font-size:1.25rem;min-height:64px;padding:.7rem 1.6rem}
+.danger{background:var(--err);border-color:var(--err)}
+input[type=text],select,textarea{font:inherit;font-size:1.05rem;border:2px solid var(--ink);border-radius:12px;padding:.5rem .7rem;background:#fff;color:var(--ink);min-height:52px;max-width:100%}
+textarea{width:100%;font-family:Consolas,"Courier New",monospace;font-size:1rem}
+label{font-weight:600}
+.msg{min-height:1.4em;font-weight:600;margin:.4rem 0}
+.msg.ok{color:var(--win)}
+.msg.error{color:var(--err)}
+.msg ul{margin:.3rem 0 0;padding-left:1.2rem;font-weight:500}
+.quick{display:flex;flex-wrap:wrap;gap:.8rem;align-items:flex-end;background:#fff;border-radius:14px;padding:.8rem}
+.quick .field{display:flex;flex-direction:column;gap:.2rem;flex:1 1 240px}
+.levelpick{display:flex;flex-wrap:wrap;gap:.5rem;border:0;padding:0;margin:0}
+.levelpick legend{font-weight:600;padding:0;margin-bottom:.2rem}
+.levelpick label{display:flex;align-items:center;gap:.4rem;border:2px solid var(--ink);border-radius:12px;padding:.35rem .7rem;min-height:52px;background:#fff;cursor:pointer;font-weight:600}
+.levelpick input{width:22px;height:22px}
+.levelpick label:has(input:checked){background:var(--ink);color:#fff}
+.levelpick small{color:inherit;opacity:.8;font-weight:400}
+details{background:#fff;border-radius:14px;padding:.6rem .9rem;margin:.8rem 0}
+summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+.file{display:inline-flex;align-items:center;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:14px;padding:.55rem 1.1rem;min-height:52px;cursor:pointer;font-weight:600}
+.file input{position:absolute;opacity:0;width:1px;height:1px}
+.stats{font-size:1.05rem;font-weight:600;margin:.8rem 0 .4rem}
+.chips{list-style:none;margin:.4rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{display:flex;align-items:center;gap:.3rem;background:#fff;border:2px solid var(--line);border-radius:999px;padding:.15rem .25rem .15rem .9rem;font-size:1rem}
+.chip .nm{font-weight:600}
+.chip button{min-height:40px;padding:.1rem .6rem;font-size:.9rem;border-radius:999px}
+.chip .lv1{background:var(--lime-2);border-color:var(--lime-2);color:#1d2a00}
+.chip .lv2{background:var(--lav-2);border-color:var(--lav-2);color:#1b0f45}
+.chip .x{background:#fff;color:var(--ink);border-color:var(--line)}
+.teamgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.7rem;margin-top:.8rem}
+.teamcard{background:#fff;border-radius:14px;padding:.7rem .8rem;border:2px solid var(--lav-2)}
+.teamcard label{font-size:.85rem;color:var(--muted)}
+.teamcard input{width:100%;margin:.2rem 0 .4rem;font-weight:700}
+.teamcard .pl{font-size:1.05rem}
+.explain{background:#fff;border-radius:14px;padding:.6rem .9rem;font-size:.95rem}
+/* Turnier */
+.playgrid{display:grid;grid-template-columns:1fr;gap:1rem}
+@media (min-width:1050px){.playgrid{grid-template-columns:minmax(360px,1fr) 2fr;align-items:start}.side{position:sticky;top:12px}}
+.timerblock{text-align:center}
+.roundlabel{font-size:1.5rem;font-weight:800;color:var(--or-ink)}
+.clock{font-size:clamp(4.5rem,13vw,8rem);font-weight:800;font-variant-numeric:tabular-nums;line-height:1;margin:.3rem 0;letter-spacing:.02em}
+.clock.warn{color:var(--err)}
+.clock.done{color:var(--err);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.35}}
+.bar{height:16px;border-radius:99px;background:#fff;overflow:hidden;border:2px solid var(--or-2)}
+.bar div{height:100%;background:var(--or-2);width:100%;transition:width .2s linear}
+.timerstatus{font-size:1.15rem;font-weight:700;margin:.6rem 0;min-height:1.5em}
+.timerbtns{justify-content:center}
+.timerbtns button{flex:1 1 40%;font-size:1.15rem}
+.flash{animation:flash 1.2s ease 2}
+@keyframes flash{50%{background:#fff}}
+.legend{font-size:1.1rem;font-weight:700;background:#fff;border:2px solid var(--line);border-radius:14px;padding:.5rem .9rem;margin-bottom:.8rem}
+.legend .up{color:var(--win)} .legend .down{color:var(--err)}
+.tables{display:flex;flex-direction:column;gap:.7rem}
+.tcard{background:var(--tq);border:2px solid var(--tq-2);border-radius:var(--radius);padding:.7rem .9rem}
+.tcard.kaiser{background:var(--or);border-color:var(--or-2);box-shadow:0 0 0 4px #fff inset}
+.tcard header{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem 1rem;margin-bottom:.4rem}
+.tnum{font-size:1.6rem;font-weight:800}
+.tsub{font-size:1rem;font-weight:600;color:var(--muted)}
+.match{display:grid;grid-template-columns:1fr auto 1fr;gap:.6rem;align-items:stretch}
+@media (max-width:640px){.match{grid-template-columns:1fr}.vs{justify-self:center}}
+.vs{align-self:center;font-weight:700;color:var(--muted)}
+.teambtn{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:.15rem;background:#fff;color:var(--ink);border:3px solid var(--ink);border-radius:14px;padding:.6rem .8rem;min-height:96px;width:100%}
+.teambtn .tn{font-size:1.3rem;font-weight:800}
+.teambtn .tp{font-size:1.05rem;font-weight:500}
+.teambtn .tm{font-size:1rem;font-weight:700;margin-top:auto;color:var(--muted)}
+.teambtn.win{background:#d6f5dc;border-color:var(--win)}
+.teambtn.win .tm{color:var(--win)}
+.teambtn.lose{background:#f4f2ec;border-color:#bdb8a8;opacity:.85}
+.teambtn.lose .tm{color:var(--err)}
+.teambtn .arrow{font-size:1.4rem}
+.nextbox{text-align:center;margin-top:1rem}
+.missing{font-size:1.35rem;font-weight:800}
+table.st{width:100%;border-collapse:collapse;font-size:1rem;background:#fff;border-radius:12px;overflow:hidden}
+table.st th,table.st td{padding:.35rem .5rem;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+table.st th{background:var(--lav-2);color:#1b0f45}
+table.st td.r,table.st th.r{text-align:right;font-variant-numeric:tabular-nums}
+table.st .pl{display:block;font-size:.8rem;color:var(--muted)}
+.final{font-size:1.3rem}
+.final strong{font-size:1.6rem}
+.privacy{font-size:.95rem}
+.privacy h2{font-size:1.2rem}
+.modal{position:fixed;inset:0;background:rgba(20,24,32,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal-box{background:#fff;border-radius:var(--radius);padding:1.3rem;max-width:560px;width:100%;border:3px solid var(--or-2)}
+.modal-box .row{margin-top:1rem}
+footer{padding:1rem 0 2rem;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="title">
+    <h1>🏓 Tischtennis-Kaiserturnier</h1>
+    <p class="phase" id="phaseLabel">Vorbereitung</p>
+  </div>
+  <button id="btnRestart" class="ghost">↺ Neustart</button>
+</header>
+
+<main>
+<!-- ================= VORBEREITUNG ================= -->
+<section id="setupView">
+  <div class="block plain">
+    <strong>So geht’s:</strong> 1. Personen eintragen (24) → 2. Doppel auslosen und Teamnamen vergeben → 3. Rundenzahl wählen und Turnier starten.
+    Alles wird auf <strong>einem zentralen Gerät</strong> bedient, z.&nbsp;B. einem Laptop am Beamer.
+  </div>
+
+  <div class="block lime">
+    <h2>1. Personen eintragen</h2>
+    <p>Bitte nur <strong>erfundene Spitznamen</strong> verwenden. Jede Person schätzt sich selbst ein:
+      <strong>Level 1</strong> = wenig oder keine Erfahrung, <strong>Level 2</strong> = Vorerfahrung.</p>
+
+    <div class="quick">
+      <div class="field">
+        <label for="inName">Spitzname</label>
+        <input type="text" id="inName" maxlength="20" autocomplete="off" placeholder="z. B. Netzroller">
+      </div>
+      <fieldset class="levelpick">
+        <legend>Level</legend>
+        <label><input type="radio" name="lvl" value="1" checked> Level 1 <small>wenig/keine Erfahrung</small></label>
+        <label><input type="radio" name="lvl" value="2"> Level 2 <small>Vorerfahrung</small></label>
+      </fieldset>
+      <button id="btnAdd">＋ Hinzufügen</button>
+    </div>
+    <p class="small">Tipp: Name tippen, Level wählen, Enter drücken – fertig.</p>
+    <div id="addMsg" class="msg" role="status" aria-live="polite"></div>
+
+    <details id="importBox">
+      <summary>📋 Liste einfügen oder Datei einlesen (CSV/TXT)</summary>
+      <p>Eine Person pro Zeile im Format <strong>Spitzname;Level</strong>, zum Beispiel:<br>
+        <code>Netzroller;1</code><br><code>Kantenkönig;2</code></p>
+      <textarea id="importText" rows="8" placeholder="Netzroller;1&#10;Kantenkönig;2"></textarea>
+      <div class="row" style="margin-top:.6rem">
+        <label class="file">📂 Datei wählen …<input type="file" id="importFile" accept=".csv,.txt,text/csv,text/plain"></label>
+        <button id="btnImportAdd">Zur Liste hinzufügen</button>
+        <button id="btnImportReplace" class="ghost">Liste ersetzen</button>
+      </div>
+      <p class="small">Die Datei wird nur in diesem Browser gelesen und nirgendwohin hochgeladen.</p>
+      <div id="importMsg" class="msg" role="status" aria-live="polite"></div>
+    </details>
+
+    <div class="row">
+      <button id="btnSample" class="ghost">Beispielliste mit 24 Personen laden</button>
+      <button id="btnClear" class="ghost">Liste leeren</button>
+    </div>
+    <div class="stats" id="levelStats"></div>
+    <ul class="chips" id="personList"></ul>
+  </div>
+
+  <div class="block lav">
+    <h2>2. Doppel auslosen</h2>
+    <div class="explain">
+      <strong>So wird gelost:</strong> Möglichst jedes Doppel bekommt eine Person aus Level 1 und eine aus Level 2 – zufällig gemischt.<br>
+      <strong>Restfall:</strong> Gibt es in einem Level mehr Personen, spielen die übrigen Personen dieses Levels zufällig miteinander.
+      Beispiel: 14 × Level 1 und 10 × Level 2 → 10 gemischte Doppel und 2 Doppel aus Level 1.
+      Weil 24 eine gerade Zahl ist, bleibt dabei nie jemand übrig.
+    </div>
+    <div class="row" style="margin-top:.8rem">
+      <button id="btnDraw" class="big">🎲 Doppel auslosen</button>
+      <button id="btnFunNames" class="ghost" hidden>Lustige Teamnamen vorschlagen</button>
+    </div>
+    <div id="drawMsg" class="msg" role="status" aria-live="polite"></div>
+    <p id="teamHint" class="small" hidden>Teamnamen können jetzt geändert werden (höchstens 24 Zeichen). Nach dem Start bleiben die Doppel zusammen.</p>
+    <div id="teamGrid" class="teamgrid"></div>
+  </div>
+
+  <div class="block tq">
+    <h2>3. Runden wählen und starten</h2>
+    <div class="row">
+      <label for="selRounds">Anzahl Runden</label>
+      <select id="selRounds"></select>
+      <span>je 4 Minuten</span>
+    </div>
+    <div class="row" style="margin-top:.8rem">
+      <button id="btnStart" class="big">▶ Turnier starten</button>
+    </div>
+    <p class="small">„Turnier starten“ verteilt die 12 Doppel zufällig auf die 6 Tische.</p>
+    <div id="startMsg" class="msg" role="status" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- ================= TURNIER ================= -->
+<section id="playView" hidden>
+  <div class="playgrid">
+    <div class="side">
+      <div class="block or timerblock" id="timerBlock">
+        <div class="roundlabel" id="roundLabel">Runde 1 von 5</div>
+        <div class="clock" id="clock" aria-live="off">4:00</div>
+        <div class="bar"><div id="barFill"></div></div>
+        <div class="timerstatus" id="timerStatus" aria-live="polite">Bereit</div>
+        <div class="row timerbtns">
+          <button id="tStart">▶ Start</button>
+          <button id="tPause" class="ghost">⏸ Pause</button>
+          <button id="tResume">▶ Weiter</button>
+          <button id="tReset" class="ghost">↺ Zurücksetzen</button>
+        </div>
+        <div class="row" style="justify-content:center;margin-top:.7rem">
+          <button id="btnSoundTest" class="ghost">🔊 Ton testen</button>
+        </div>
+        <div id="soundMsg" class="small" style="min-height:1.4em;margin-top:.3rem"></div>
+        <p class="small">Die Uhr gibt nur Signale. Die Tische wechseln erst mit „Nächste Runde“.</p>
+      </div>
+
+      <div class="block lav">
+        <h2>Siege</h2>
+        <p class="small" id="standNote"></p>
+        <table class="st" id="standings"></table>
+      </div>
+    </div>
+
+    <div>
+      <div id="finalBox" class="block lime final" hidden></div>
+      <div class="legend" id="legend"><span class="up">▲ Sieger einen Tisch nach oben</span> · <span class="down">▼ Verlierer einen Tisch nach unten</span> · Klick auf ein Team = Sieger</div>
+      <div class="tables" id="tables"></div>
+      <div class="block lime nextbox" id="nextBox">
+        <div class="missing" id="missingMsg" aria-live="polite"></div>
+        <div class="row" style="justify-content:center;margin-top:.6rem">
+          <button id="btnNext" class="big">Nächste Runde ➜</button>
+        </div>
+        <div id="nextMsg" class="msg" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DATENSCHUTZ ================= -->
+<section class="block plain privacy">
+  <h2>Datenschutz</h2>
+  <p>Bitte nur <strong>erfundene Spitznamen</strong> eintragen – keine echten Namen und keine anderen persönlichen Angaben.
+    Alle Eingaben und eingefügten oder eingelesenen Listen werden <strong>nur lokal in diesem Browser</strong> verarbeitet.
+    Die App überträgt nichts, lädt keine fremden Inhalte nach (keine Schriften, Skripte oder Tracker) und speichert nichts dauerhaft –
+    keine Cookies, kein Local Storage. <strong>Neuladen oder Schließen der Seite löscht den gesamten Stand.</strong></p>
+  <p><strong>Offline per Doppelklick</strong> auf die Datei findet keine Netzwerkverbindung statt.
+    <strong>Beim Online-Aufruf</strong> (die Datei liegt auf einem Webserver und wird über eine Internetadresse geöffnet) erhält der Server beim Laden
+    technisch bedingt Zugriffsdaten: IP-Adresse, Datum und Uhrzeit, die aufgerufene Datei, Browser- und Betriebssystemangaben (User-Agent)
+    und ggf. die vorher besuchte Seite (Referrer). Je nach Anbieter werden diese Daten in Server-Protokollen gespeichert; verantwortlich dafür ist,
+    wer die Seite bereitstellt. Spitznamen, Level und Ergebnisse gelangen dabei nicht an den Server, denn nach dem Laden arbeitet die App ausschließlich im Browser.</p>
+</section>
+</main>
+<footer>Tischtennis-Kaiserturnier · eine einzelne HTML-Datei, funktioniert offline.</footer>
+</div>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle"></h3>
+    <p id="modalText"></p>
+    <div class="row" id="modalBtns"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------- Hilfsfunktionen ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => s.trim().replace(/\s+/g, " ").toLocaleLowerCase("de-DE");
+function randInt(n){
+  if (window.crypto && crypto.getRandomValues){ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
+  return Math.floor(Math.random() * n);
+}
+function shuffle(arr){ const a = arr.slice(); for (let i = a.length - 1; i > 0; i--){ const j = randInt(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function setMsg(el, text, type, list){
+  el.className = "msg" + (type ? " " + type : "");
+  el.innerHTML = esc(text) + (list && list.length ? "<ul>" + list.slice(0, 15).map(x => "<li>" + esc(x) + "</li>").join("") + (list.length > 15 ? "<li>… und " + (list.length - 15) + " weitere</li>" : "") + "</ul>" : "");
+}
+
+const MAX_PERSONS = 24, TABLES = 6, ROUND_MS = 240000, HALF_MS = 120000;
+
+/* ---------- Zustand (nur im Arbeitsspeicher) ---------- */
+const S = {
+  persons: [], nextId: 1,
+  teams: null,          // [{idx, members:[personId, personId]}]
+  teamNames: [],
+  phase: "setup",       // setup | running | finished
+  rounds: 5, round: 1, completed: 0,
+  tables: [], winners: [], wins: []
+};
+
+const SAMPLE = [
+  ["Netzroller",1],["Kantenkönig",2],["Pingpong-Pirat",1],["Topspin-Tiger",2],["Flummi",1],["Schmetterfee",2],
+  ["Plopp-Panda",1],["Aufschlag-Ass",2],["Kellenkind",1],["Rückhand-Rakete",2],["Zelluloid-Zebra",1],["Schnittmeister",2],
+  ["Tischtänzer",1],["Konterkatze",2],["Sonntagsspin",1],["Blitzkelle",2],["Glückspilz",1],["Netzfuchs",2],
+  ["Hüpfball",1],["Ballmagier",2],["Kicherkelle",1],["Wirbelwind",2],["Wackelaufschlag",1],["Kugelblitz",1]
+];
+const FUN_NAMES = ["Die Kantenflitzer","Netzpiraten","Topspin-Titanen","Ballzauberer","Plopp-Profis","Kellenkünstler",
+  "Rückhand-Rebellen","Pingpong-Panther","Die Schmetterlinge","Konterkönige","Blitzbälle","Spin-Doktoren",
+  "Die Netzläufer","Die Schnippler","Die Kellenhelden","Ballakrobaten"];
+
+/* ---------- Dialog ---------- */
+function ask(title, text, buttons){
+  return new Promise(resolve => {
+    const m = $("modal"), box = $("modalBtns");
+    $("modalTitle").textContent = title; $("modalText").textContent = text; box.innerHTML = "";
+    const prev = document.activeElement;
+    function close(v){ m.hidden = true; document.removeEventListener("keydown", onKey); if (prev && prev.focus) prev.focus(); resolve(v); }
+    function onKey(e){ if (e.key === "Escape") close(null); }
+    buttons.forEach(b => { const btn = document.createElement("button"); btn.textContent = b.label; if (b.cls) btn.className = b.cls; btn.onclick = () => close(b.value); box.appendChild(btn); });
+    document.addEventListener("keydown", onKey);
+    m.hidden = false; box.lastChild.focus();
+  });
+}
+
+/* ---------- Personen ---------- */
+function validateName(name){
+  if (!name) return "Bitte einen Spitznamen eingeben.";
+  if (name.length > 20) return "Der Spitzname ist zu lang (höchstens 20 Zeichen).";
+  if (/[;\t]/.test(name)) return "Bitte kein Semikolon und keinen Tabulator im Spitznamen verwenden.";
+  if (!/[\p{L}\p{N}]/u.test(name)) return "Der Spitzname braucht mindestens einen Buchstaben oder eine Ziffer.";
+  return null;
+}
+function parseLevel(s){ const m = String(s).trim().match(/^(?:level\s*)?([12])$/i); return m ? Number(m[1]) : null; }
+function isDuplicate(name, list){ const n = norm(name); return list.some(p => norm(p.name) === n); }
+function personsChanged(){
+  if (S.teams){ S.teams = null; setMsg($("drawMsg"), "Die Personenliste wurde geändert – bitte neu auslosen.", "error"); }
+  renderSetup();
+}
+function addPerson(){
+  const name = $("inName").value.trim().replace(/\s+/g, " ");
+  const level = Number(document.querySelector('input[name="lvl"]:checked').value);
+  const err = validateName(name);
+  if (err) return setMsg($("addMsg"), err, "error");
+  if (isDuplicate(name, S.persons)) return setMsg($("addMsg"), "„" + name + "“ gibt es schon. Bitte einen anderen Spitznamen wählen.", "error");
+  if (S.persons.length >= MAX_PERSONS) return setMsg($("addMsg"), "Es sind bereits 24 Personen eingetragen.", "error");
+  S.persons.push({ id: S.nextId++, name, level });
+  $("inName").value = ""; $("inName").focus();
+  setMsg($("addMsg"), "„" + name + "“ (Level " + level + ") hinzugefügt.", "ok");
+  personsChanged();
+}
+function parseList(text){
+  const entries = [], errors = [];
+  const lines = text.replace(/^﻿/, "").split(/\r\n|\r|\n/);
+  let firstContent = true;
+  lines.forEach((raw, i) => {
+    const line = raw.trim(), nr = i + 1;
+    if (!line || line.startsWith("#")) return;
+    if (firstContent){ firstContent = false; if (/spitzname/i.test(line) && /level/i.test(line)) return; }
+    let parts = line.split(";");
+    if (parts.length === 1) parts = line.split("\t");
+    if (parts.length === 1) parts = line.split(",");
+    parts = parts.map(p => p.trim().replace(/^"(.*)"$/, "$1").trim());
+    while (parts.length > 2 && parts[parts.length - 1] === "") parts.pop();
+    if (parts.length !== 2){ errors.push("Zeile " + nr + ": „" + line + "“ – bitte das Format Spitzname;Level verwenden."); return; }
+    const name = parts[0].replace(/\s+/g, " "), level = parseLevel(parts[1]);
+    const err = validateName(name);
+    if (err){ errors.push("Zeile " + nr + ": " + err); return; }
+    if (level === null){ errors.push("Zeile " + nr + ": „" + name + "“ – Level muss 1 oder 2 sein (gefunden: „" + parts[1] + "“)."); return; }
+    entries.push({ name, level, nr });
+  });
+  return { entries, errors };
+}
+function applyEntries(entries, replace){
+  const base = replace ? [] : S.persons.slice(), skipped = [];
+  let added = 0;
+  entries.forEach(e => {
+    if (isDuplicate(e.name, base)){ skipped.push((e.nr ? "Zeile " + e.nr + ": " : "") + "„" + e.name + "“ ist doppelt – übersprungen."); return; }
+    if (base.length >= MAX_PERSONS){ skipped.push((e.nr ? "Zeile " + e.nr + ": " : "") + "„" + e.name + "“ – mehr als 24 Personen, übersprungen."); return; }
+    base.push({ id: S.nextId++, name: e.name, level: e.level }); added++;
+  });
+  S.persons = base;
+  return { added, skipped };
+}
+async function importList(replace){
+  const text = $("importText").value;
+  if (!text.trim()) return setMsg($("importMsg"), "Das Textfeld ist leer. Bitte Liste einfügen oder Datei wählen.", "error");
+  const { entries, errors } = parseList(text);
+  if (!entries.length) return setMsg($("importMsg"), "Keine gültige Zeile gefunden.", "error", errors);
+  if (replace && S.persons.length){
+    const ok = await ask("Liste ersetzen?", "Die bisherigen " + S.persons.length + " Personen werden durch die neue Liste ersetzt.", [{label:"Ja, ersetzen",value:true},{label:"Abbrechen",value:false,cls:"ghost"}]);
+    if (!ok) return;
+  }
+  const { added, skipped } = applyEntries(entries, replace);
+  const all = errors.concat(skipped);
+  setMsg($("importMsg"), added + " Person(en) übernommen." + (all.length ? " " + all.length + " Zeile(n) nicht übernommen:" : ""), all.length ? "error" : "ok", all);
+  personsChanged();
+}
+function readFile(file){
+  if (!file) return;
+  if (file.size > 200000) return setMsg($("importMsg"), "Die Datei ist zu groß. Erwartet wird eine kurze Liste.", "error");
+  const read = (enc, cb) => { const r = new FileReader(); r.onload = () => cb(String(r.result)); r.onerror = () => setMsg($("importMsg"), "Die Datei konnte nicht gelesen werden.", "error"); r.readAsText(file, enc); };
+  read("utf-8", txt => {
+    const done = t => { $("importText").value = t; setMsg($("importMsg"), "Datei „" + file.name + "“ eingelesen. Bitte prüfen und dann „Zur Liste hinzufügen“ oder „Liste ersetzen“ wählen.", "ok"); };
+    if (txt.includes("�")) read("windows-1252", done); else done(txt);
+  });
+}
+
+/* ---------- Auslosung ---------- */
+function drawTeams(){
+  if (S.persons.length !== MAX_PERSONS) return setMsg($("drawMsg"), "Zum Auslosen werden genau 24 Personen gebraucht (aktuell " + S.persons.length + ").", "error");
+  const l1 = shuffle(S.persons.filter(p => p.level === 1)), l2 = shuffle(S.persons.filter(p => p.level === 2));
+  const mixed = Math.min(l1.length, l2.length), pairs = [];
+  for (let i = 0; i < mixed; i++) pairs.push(shuffle([l1[i].id, l2[i].id]));
+  const restLevel = l1.length > l2.length ? 1 : 2;
+  const rest = (l1.length > l2.length ? l1 : l2).slice(mixed);
+  for (let i = 0; i + 1 < rest.length; i += 2) pairs.push([rest[i].id, rest[i + 1].id]);
+  S.teams = shuffle(pairs).map((members, idx) => ({ idx, members }));
+  if (S.teamNames.length !== 12) S.teamNames = Array.from({ length: 12 }, (_, i) => "Team " + (i + 1));
+  let text = "Ausgelost: " + mixed + " gemischte Doppel";
+  if (rest.length) text += " und " + rest.length / 2 + " Doppel aus Level " + restLevel + " (Restfall: " + l1.length + " × Level 1, " + l2.length + " × Level 2)";
+  else text += " – alle Doppel sind gemischt";
+  setMsg($("drawMsg"), text + ". Nicht zufrieden? Einfach neu auslosen.", "ok");
+  setMsg($("startMsg"), "");
+  renderSetup();
+}
+const personById = id => S.persons.find(p => p.id === id);
+const teamName = idx => S.teamNames[idx];
+const teamPlayers = idx => S.teams[idx].members.map(id => personById(id).name).join(" & ");
+
+/* ---------- Turnier ---------- */
+function startTournament(){
+  if (!S.teams) return setMsg($("startMsg"), "Bitte zuerst die Doppel auslosen.", "error");
+  const names = S.teamNames.map((n, i) => n.trim().replace(/\s+/g, " ") || "Team " + (i + 1));
+  const seen = new Map(), dups = [];
+  names.forEach(n => { const k = norm(n); if (seen.has(k)) dups.push(n); seen.set(k, true); });
+  if (dups.length) return setMsg($("startMsg"), "Teamnamen müssen verschieden sein. Doppelt: " + [...new Set(dups)].join(", "), "error");
+  S.teamNames = names;
+  S.rounds = Number($("selRounds").value);
+  const order = shuffle(S.teams.map(t => t.idx));
+  S.tables = Array.from({ length: TABLES }, (_, t) => [order[2 * t], order[2 * t + 1]]);
+  S.winners = Array(TABLES).fill(null);
+  S.wins = Array(12).fill(0);
+  S.round = 1; S.completed = 0; S.phase = "running";
+  setMsg($("nextMsg"), "");
+  timerReset();
+  render();
+  window.scrollTo(0, 0);
+}
+function computeNextTables(){
+  const W = S.winners, L = S.tables.map((pair, i) => pair[0] === W[i] ? pair[1] : pair[0]);
+  const nt = [];
+  nt[0] = [W[0], W[1]];                                   // Kaisertisch: Sieger bleibt, Sieger von Tisch 2 kommt hoch
+  for (let t = 1; t < TABLES - 1; t++) nt[t] = [L[t - 1], W[t + 1]];
+  nt[TABLES - 1] = [L[TABLES - 2], L[TABLES - 1]];         // Tisch 6: Verlierer bleibt, Verlierer von Tisch 5 kommt runter
+  const flat = nt.flat();
+  if (flat.length !== 12 || new Set(flat).size !== 12 || flat.some(x => x === null || x === undefined)) throw new Error("Tischwechsel fehlerhaft");
+  return nt;
+}
+function nextRound(){
+  if (S.phase !== "running") return;
+  const missing = S.winners.filter(w => w === null).length;
+  if (missing) return setMsg($("nextMsg"), "Bitte zuerst an allen Tischen den Sieger wählen.", "error");
+  S.winners.forEach(w => S.wins[w]++);
+  S.completed++;
+  if (S.round >= S.rounds){
+    S.phase = "finished";
+    timerStop();
+    setMsg($("nextMsg"), "");
+  } else {
+    S.tables = computeNextTables();
+    S.winners = Array(TABLES).fill(null);
+    S.round++;
+    timerReset();
+    setMsg($("nextMsg"), "Runde " + S.round + ": Die Teams haben die Tische gewechselt.", "ok");
+  }
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function pickWinner(t, idx){
+  if (S.phase !== "running") return;
+  S.winners[t] = S.winners[t] === idx ? null : idx;
+  setMsg($("nextMsg"), "");
+  renderPlay();
+}
+function ranking(){
+  const list = S.teams.map(t => ({ idx: t.idx, wins: S.wins[t.idx] || 0 }))
+    .sort((a, b) => b.wins - a.wins || teamName(a.idx).localeCompare(teamName(b.idx), "de"));
+  let rank = 0;
+  list.forEach((e, i) => { if (i === 0 || e.wins !== list[i - 1].wins) rank = i + 1; e.rank = rank; });
+  return list;
+}
+
+/* ---------- Ton (Web Audio, ohne Dateien) ---------- */
+let AC = null, master = null;
+function audio(){
+  const C = window.AudioContext || window.webkitAudioContext;
+  if (!C) return null;
+  if (!AC){ AC = new C(); master = AC.createGain(); master.gain.value = 0.9; master.connect(AC.destination); }
+  if (AC.state === "suspended") AC.resume();
+  return AC;
+}
+function tone(freq, at, dur, type, vol){
+  const c = audio(); if (!c) return;
+  const s = c.currentTime + 0.03 + at, o = c.createOscillator(), g = c.createGain();
+  o.type = type || "sine"; o.frequency.setValueAtTime(freq, s);
+  g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(vol || 0.35, s + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, s + dur);
+  o.connect(g); g.connect(master); o.start(s); o.stop(s + dur + 0.05);
+}
+const SND = {
+  start(){ tone(660, 0, 0.16, "triangle", 0.4); tone(990, 0.16, 0.35, "triangle", 0.4); },
+  half(){ tone(880, 0, 0.5, "sine", 0.45); tone(659, 0.45, 0.7, "sine", 0.45); },
+  tick(){ tone(1500, 0, 0.05, "square", 0.15); },
+  end(){ [523, 659, 784].forEach((f, i) => tone(f, i * 0.18, 0.25, "triangle", 0.45)); tone(1047, 0.54, 1.2, "triangle", 0.5); tone(523, 0.54, 1.2, "sine", 0.3); }
+};
+let soundTesting = false;
+function soundTest(){
+  if (!audio()){ $("soundMsg").textContent = "Dieser Browser kann leider keine Töne erzeugen."; return; }
+  if (soundTesting) return;
+  soundTesting = true; $("btnSoundTest").disabled = true;
+  const steps = [[0, "Startklang", SND.start], [1300, "Halbzeitton", SND.half], [3000, "Ticken (letzte 5 Sekunden)", null], [5800, "Schlussklang", SND.end]];
+  steps.forEach(([ms, label, fn]) => setTimeout(() => {
+    $("soundMsg").textContent = "♪ " + label;
+    if (fn) fn(); else for (let i = 0; i < 5; i++) setTimeout(SND.tick, i * 500);
+  }, ms));
+  setTimeout(() => { soundTesting = false; $("btnSoundTest").disabled = false; $("soundMsg").textContent = "Tontest beendet. Nichts zu hören? Lautstärke prüfen."; }, 7800);
+}
+
+/* ---------- Uhr ---------- */
+const T = { remaining: ROUND_MS, running: false, endAt: 0, started: false, half: false, ticks: new Set(), ended: false, iv: null };
+function timerRun(){ T.running = true; T.endAt = performance.now() + T.remaining; clearInterval(T.iv); T.iv = setInterval(timerTick, 100); renderTimer(); }
+function timerStart(){ if (T.started || S.phase !== "running") return; audio(); T.started = true; SND.start(); timerRun(); }
+function timerPause(){ if (!T.running) return; T.remaining = Math.max(0, T.endAt - performance.now()); T.running = false; clearInterval(T.iv); renderTimer(); }
+function timerResume(){ if (!T.started || T.running || T.remaining <= 0) return; audio(); timerRun(); }
+function timerStop(){ if (T.running){ T.remaining = Math.max(0, T.endAt - performance.now()); } T.running = false; clearInterval(T.iv); renderTimer(); }
+function timerReset(){ clearInterval(T.iv); T.remaining = ROUND_MS; T.running = false; T.started = false; T.half = false; T.ended = false; T.ticks = new Set(); renderTimer(); }
+function timerTick(){
+  T.remaining = Math.max(0, T.endAt - performance.now());
+  if (!T.half && T.remaining <= HALF_MS){
+    T.half = true;
+    if (T.remaining > 0){ SND.half(); const b = $("timerBlock"); b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); }
+  }
+  const sec = Math.ceil(T.remaining / 1000);
+  if (sec >= 1 && sec <= 5 && !T.ticks.has(sec)){ for (let k = sec; k <= 5; k++) T.ticks.add(k); SND.tick(); }
+  if (T.remaining <= 0){ T.running = false; clearInterval(T.iv); if (!T.ended){ T.ended = true; SND.end(); } }
+  renderTimer();
+}
+function renderTimer(){
+  const sec = Math.ceil(T.remaining / 1000);
+  $("clock").textContent = Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+  $("clock").className = "clock" + (T.ended ? " done" : (T.started && sec <= 5 ? " warn" : ""));
+  $("barFill").style.width = (T.remaining / ROUND_MS * 100) + "%";
+  const active = S.phase === "running";
+  $("tStart").disabled = !active || T.started;
+  $("tPause").disabled = !active || !T.running;
+  $("tResume").disabled = !active || !T.started || T.running || T.remaining <= 0;
+  $("tReset").disabled = !active || !T.started;
+  let st;
+  if (!active) st = "Turnier beendet";
+  else if (T.ended) st = "⏰ Zeit ist um! Bitte an jedem Tisch den Sieger wählen.";
+  else if (!T.started) st = "Bereit – „Start“ drücken";
+  else if (T.running) st = T.remaining <= HALF_MS ? "Läuft – zweite Hälfte" : "Läuft";
+  else st = "⏸ Pausiert – „Weiter“ drücken";
+  $("timerStatus").textContent = st;
+}
+
+/* ---------- Anzeige ---------- */
+function renderSetup(){
+  const n = S.persons.length, n1 = S.persons.filter(p => p.level === 1).length, n2 = n - n1;
+  let s = "Gesamt: " + n + " von 24 · Level 1: " + n1 + " · Level 2: " + n2;
+  if (n < 24) s += " — es fehlen noch " + (24 - n);
+  else s += " ✔";
+  $("levelStats").textContent = s;
+  $("personList").innerHTML = S.persons.map(p =>
+    '<li class="chip"><span class="nm">' + esc(p.name) + '</span>' +
+    '<button class="lv' + p.level + '" data-act="lvl" data-id="' + p.id + '" title="Level wechseln">Level ' + p.level + '</button>' +
+    '<button class="x" data-act="del" data-id="' + p.id + '" aria-label="' + esc(p.name) + ' entfernen" title="Entfernen">✕</button></li>').join("");
+  $("btnAdd").disabled = n >= MAX_PERSONS;
+  $("btnDraw").textContent = S.teams ? "🎲 Neu auslosen" : "🎲 Doppel auslosen";
+  $("btnDraw").disabled = n !== MAX_PERSONS;
+  $("btnFunNames").hidden = !S.teams;
+  $("teamHint").hidden = !S.teams;
+  $("btnStart").disabled = !S.teams;
+  $("teamGrid").innerHTML = S.teams ? S.teams.map(t =>
+    '<div class="teamcard"><label for="tn' + t.idx + '">Teamname</label>' +
+    '<input type="text" id="tn' + t.idx + '" data-idx="' + t.idx + '" maxlength="24" value="' + esc(S.teamNames[t.idx]) + '">' +
+    '<div class="pl">' + esc(teamPlayers(t.idx)) + '</div></div>').join("") : "";
+}
+function moveText(t, isWinner){
+  if (S.round >= S.rounds) return isWinner ? "🏆 Sieger" : "Verlierer";
+  if (isWinner) return t === 0 ? "🏆 Sieger · ● bleibt an Tisch 1" : "🏆 Sieger · ▲ zu Tisch " + t;
+  return t === TABLES - 1 ? "● bleibt an Tisch 6" : "▼ zu Tisch " + (t + 2);
+}
+function hintText(t){
+  if (S.round >= S.rounds) return "Letzte Runde – kein Wechsel mehr";
+  const up = t === 0 ? "Sieger ● bleibt" : "Sieger ▲ Tisch " + t;
+  const down = t === TABLES - 1 ? "Verlierer ● bleibt" : "Verlierer ▼ Tisch " + (t + 2);
+  return up + " · " + down;
+}
+function renderPlay(){
+  const fin = S.phase === "finished";
+  $("roundLabel").textContent = fin ? "Turnier beendet" : "Runde " + S.round + " von " + S.rounds;
+  $("tables").innerHTML = S.tables.map((pair, t) => {
+    const w = S.winners[t];
+    const btn = idx => {
+      const cls = w === null ? "" : (w === idx ? " win" : " lose");
+      const label = w === null ? (fin ? "" : "Als Sieger wählen") : moveText(t, w === idx);
+      return '<button class="teambtn' + cls + '" data-t="' + t + '" data-idx="' + idx + '" aria-pressed="' + (w === idx) + '"' + (fin ? " disabled" : "") + '>' +
+        '<span class="tn">' + esc(teamName(idx)) + '</span><span class="tp">' + esc(teamPlayers(idx)) + '</span>' +
+        '<span class="tm">' + esc(label) + '</span></button>';
+    };
+    return '<article class="tcard' + (t === 0 ? " kaiser" : "") + '"><header><span class="tnum">' + (t === 0 ? "👑 Tisch 1 · Kaisertisch" : "Tisch " + (t + 1)) + '</span>' +
+      '<span class="tsub">' + esc(fin ? "" : hintText(t)) + '</span></header>' +
+      '<div class="match">' + btn(pair[0]) + '<span class="vs">gegen</span>' + btn(pair[1]) + '</div></article>';
+  }).join("");
+  const missing = S.winners.filter(x => x === null).length;
+  $("nextBox").hidden = fin;
+  $("legend").hidden = fin;
+  $("missingMsg").textContent = missing === 0 ? "✔ Alle 6 Ergebnisse eingetragen" : (missing === 1 ? "Es fehlt noch 1 Ergebnis" : "Es fehlen noch " + missing + " Ergebnisse");
+  $("btnNext").textContent = S.round >= S.rounds ? "🏁 Turnier abschließen" : "Nächste Runde ➜";
+  $("btnNext").disabled = missing > 0;
+  // Tabelle
+  const rk = ranking();
+  $("standNote").textContent = S.completed === 0 ? "Noch keine Runde abgeschlossen." : "Siege aus " + S.completed + " abgeschlossenen Runde" + (S.completed === 1 ? "" : "n") + ". Gleich viele Siege = gleicher Rang.";
+  $("standings").innerHTML = '<thead><tr><th class="r">Rang</th><th>Team</th><th class="r">Siege</th></tr></thead><tbody>' +
+    rk.map(e => '<tr><td class="r">' + e.rank + '.</td><td><strong>' + esc(teamName(e.idx)) + '</strong><span class="pl">' + esc(teamPlayers(e.idx)) + '</span></td><td class="r">' + e.wins + '</td></tr>').join("") + "</tbody>";
+  // Abschluss
+  $("finalBox").hidden = !fin;
+  if (fin){
+    const top = rk.filter(e => e.rank === 1);
+    $("finalBox").innerHTML = "🏆 Das Turnier ist beendet (" + S.rounds + " Runde" + (S.rounds === 1 ? "" : "n") + ").<br>" +
+      (top.length === 1 ? "Meiste Siege: <strong>" + esc(teamName(top[0].idx)) + "</strong> mit " + top[0].wins + " Siegen."
+        : "Meiste Siege (gleicher Rang): <strong>" + top.map(e => esc(teamName(e.idx))).join(", ") + "</strong> mit je " + top[0].wins + " Siegen.") +
+      "<br>Letzter Sieger am Kaisertisch: <strong>" + esc(teamName(S.winners[0])) + "</strong>";
+  }
+  renderTimer();
+}
+function render(){
+  const play = S.phase !== "setup";
+  $("setupView").hidden = play; $("playView").hidden = !play;
+  $("phaseLabel").textContent = S.phase === "setup" ? "Vorbereitung" : (S.phase === "running" ? "Runde " + S.round + " von " + S.rounds + " · 6 Tische · 12 Doppel" : "Turnier beendet");
+  if (play) renderPlay(); else renderSetup();
+}
+
+/* ---------- Ereignisse ---------- */
+$("btnAdd").onclick = addPerson;
+$("inName").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); addPerson(); } });
+$("personList").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const id = Number(b.dataset.id), p = personById(id); if (!p) return;
+  if (b.dataset.act === "del"){ S.persons = S.persons.filter(x => x.id !== id); setMsg($("addMsg"), "„" + p.name + "“ entfernt."); }
+  else { p.level = p.level === 1 ? 2 : 1; setMsg($("addMsg"), "„" + p.name + "“ ist jetzt Level " + p.level + "."); }
+  personsChanged();
+});
+$("btnImportAdd").onclick = () => importList(false);
+$("btnImportReplace").onclick = () => importList(true);
+$("importFile").addEventListener("change", e => { readFile(e.target.files[0]); e.target.value = ""; });
+$("btnSample").onclick = async () => {
+  if (S.persons.length){
+    const ok = await ask("Beispielliste laden?", "Die bisherigen " + S.persons.length + " Personen werden durch die Beispielliste ersetzt.", [{label:"Ja, laden",value:true},{label:"Abbrechen",value:false,cls:"ghost"}]);
+    if (!ok) return;
+  }
+  applyEntries(SAMPLE.map(([name, level]) => ({ name, level })), true);
+  setMsg($("addMsg"), "Beispielliste mit 24 erfundenen Spitznamen geladen.", "ok");
+  personsChanged();
+};
+$("btnClear").onclick = async () => {
+  if (!S.persons.length) return;
+  const ok = await ask("Liste leeren?", "Alle " + S.persons.length + " Personen werden aus der Liste entfernt.", [{label:"Ja, leeren",value:true,cls:"danger"},{label:"Abbrechen",value:false,cls:"ghost"}]);
+  if (!ok) return;
+  S.persons = []; setMsg($("addMsg"), "Liste geleert."); personsChanged();
+};
+$("btnDraw").onclick = drawTeams;
+$("btnFunNames").onclick = () => { S.teamNames = shuffle(FUN_NAMES).slice(0, 12); renderSetup(); };
+$("teamGrid").addEventListener("input", e => { if (e.target.dataset.idx !== undefined) S.teamNames[Number(e.target.dataset.idx)] = e.target.value; });
+$("btnStart").onclick = startTournament;
+$("tables").addEventListener("click", e => { const b = e.target.closest(".teambtn"); if (b) pickWinner(Number(b.dataset.t), Number(b.dataset.idx)); });
+$("btnNext").onclick = nextRound;
+$("tStart").onclick = timerStart;
+$("tPause").onclick = timerPause;
+$("tResume").onclick = timerResume;
+$("tReset").onclick = timerReset;
+$("btnSoundTest").onclick = soundTest;
+$("btnRestart").onclick = async () => {
+  const v = await ask("Neustart?", "Was soll zurückgesetzt werden? Der aktuelle Turnierstand geht dabei verloren.", [
+    {label:"Neues Turnier – Personen behalten", value:"keep"},
+    {label:"Alles löschen", value:"all", cls:"danger"},
+    {label:"Abbrechen", value:null, cls:"ghost"}]);
+  if (!v) return;
+  timerReset();
+  Object.assign(S, { teams: null, teamNames: [], phase: "setup", round: 1, completed: 0, tables: [], winners: [], wins: [] });
+  if (v === "all"){ S.persons = []; $("importText").value = ""; }
+  ["addMsg", "importMsg", "drawMsg", "startMsg", "nextMsg"].forEach(id => setMsg($(id), ""));
+  render(); window.scrollTo(0, 0);
+};
+window.addEventListener("beforeunload", e => { if (S.persons.length || S.phase !== "setup"){ e.preventDefault(); e.returnValue = ""; } });
+
+(function init(){
+  const sel = $("selRounds");
+  for (let i = 1; i <= 30; i++){ const o = document.createElement("option"); o.value = i; o.textContent = i + (i === 1 ? " Runde" : " Runden"); if (i === 5) o.selected = true; sel.appendChild(o); }
+  render();
+})();
+</script>
+</body>
+</html>
